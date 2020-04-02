@@ -1,15 +1,15 @@
-#=== Virtual Queue ===
+# Virtual Queue
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-== Description ==
+# Description
 
 By using this plugin you'll be able to allow only a specific number of visitors to navigate through your website.
 The extra influx of visitors will be kept in a virtual queue until a new space will be available.
 
 
-== Installation ==
+# Installation
 
 1. Upload the `virtual-queue` directory to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress

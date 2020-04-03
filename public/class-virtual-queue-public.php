@@ -189,6 +189,10 @@ class Virtual_Queue_Public {
 				 */
 				if ( $add_to_queue ):
 					setcookie( 'vq_session_id', $session_create_id, time() + ( 3600 * $vq_cookie_expire_hours ), '/' );
+					/**
+					 * Set the current position
+					 */
+					self::set_queue_position();
 				endif;
 			endif;
 
@@ -345,6 +349,9 @@ class Virtual_Queue_Public {
 		);
 	}
 
+	/**
+	 * Maintenance
+	 */
 	private static function maintenance() {
 		global $wpdb;
 		/**
@@ -386,6 +393,25 @@ class Virtual_Queue_Public {
 			array( 'id' => 1 )
 		);
 
+		/**
+		 * Update the queue position
+		 */
+		self::set_queue_position();
 		exit( 0 );
+	}
+
+	/**
+	 * Update the queue position
+	 */
+	private static function set_queue_position() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'vq_sessions';
+
+		/**
+		 * Set the current position
+		 */
+		$wpdb->query( $wpdb->prepare( "SET @virtual_queue_position := 0;" ) );
+		$wpdb->query( $wpdb->prepare( "UPDATE $table SET estimated_time = ( SELECT @virtual_queue_position := @virtual_queue_position + 1 ) ORDER BY id ASC;" ) );
+
 	}
 }

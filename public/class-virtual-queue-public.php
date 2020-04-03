@@ -362,8 +362,8 @@ class Virtual_Queue_Public {
 		$time                     = time() - ( $vq_inactive_minutes * 60 );
 		$table                    = $wpdb->prefix . 'vq_sessions';
 
-		$delete_pending = $wpdb->query( $wpdb->prepare( "DELETE FROM $table WHERE updated_date < $time and status=0" ) );
-		$delete_active  = $wpdb->query( $wpdb->prepare( "DELETE FROM $table WHERE updated_date < $time and status=1" ) );
+		$delete_pending = $wpdb->query( "DELETE FROM $table WHERE updated_date < $time and status=0" );
+		$delete_active  = $wpdb->query( "DELETE FROM $table WHERE updated_date < $time and status=1" );
 
 		/**
 		 * Get the current status
@@ -380,15 +380,15 @@ class Virtual_Queue_Public {
 		 * Let's allow someone else to navigate
 		 */
 		$allow_counter     = $vq_sessions_limit_number - $active_count;
-		$approved_visitors = $wpdb->query( $wpdb->prepare( "update $table set status=1 ORDER BY id ASC LIMIT $allow_counter" ) );
+		$approved_visitors = $wpdb->query( "update $table set status=1 ORDER BY id ASC LIMIT $allow_counter" );
 
 		/**
 		 * Update the stats
 		 */
 		$wpdb->update( $wpdb->prefix . 'vq_status',
 			array(
-				'pending' => $pending_count - $approved_visitors,
-				'active'  => $active_count + $approved_visitors,
+				'pending' => ( $pending_count - $approved_visitors ) < 0 ? 0 : $pending_count - $approved_visitors,
+				'active'  => ( $active_count + $approved_visitors ) < 0 ? 0 : $active_count + $approved_visitors,
 			),
 			array( 'id' => 1 )
 		);
@@ -410,8 +410,8 @@ class Virtual_Queue_Public {
 		/**
 		 * Set the current position
 		 */
-		$wpdb->query( $wpdb->prepare( "SET @virtual_queue_position := 0;" ) );
-		$wpdb->query( $wpdb->prepare( "UPDATE $table SET estimated_time = ( SELECT @virtual_queue_position := @virtual_queue_position + 1 ) where status=0 ORDER BY id ASC;" ) );
+		$wpdb->query( "SET @virtual_queue_position := 0;" );
+		$wpdb->query( "UPDATE $table SET estimated_time = ( SELECT @virtual_queue_position := @virtual_queue_position + 1 ) where status=0 ORDER BY id ASC;" );
 
 	}
 }

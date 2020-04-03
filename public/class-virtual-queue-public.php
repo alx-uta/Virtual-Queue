@@ -411,7 +411,7 @@ class Virtual_Queue_Public {
 		 * Set the current position
 		 */
 		$wpdb->query( $wpdb->prepare( "SET @virtual_queue_position := 0;" ) );
-		$wpdb->query( $wpdb->prepare( "UPDATE $table SET estimated_time = ( SELECT @virtual_queue_position := @virtual_queue_position + 1 ) ORDER BY id ASC;" ) );
+		$wpdb->query( $wpdb->prepare( "UPDATE $table SET estimated_time = ( SELECT @virtual_queue_position := @virtual_queue_position + 1 ) where status=0 ORDER BY id ASC;" ) );
 
 	}
 }

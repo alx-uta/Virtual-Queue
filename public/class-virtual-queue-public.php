@@ -126,6 +126,7 @@ class Virtual_Queue_Public {
 		     && ! current_user_can( 'administrator' )
 		     && strpos( $request_url, 'wp-admin' ) == false
 		     && strpos( $request_url, 'wp-login' ) == false
+		     && strpos( $request_url, 'virtual-queue/maintenance' ) == false
 		):
 
 			$table_name        = $wpdb->prefix . 'vq_sessions';
@@ -371,20 +372,20 @@ class Virtual_Queue_Public {
 		/**
 		 * Let's allow someone else to navigate
 		 */
-		$allow_counter = $vq_sessions_limit_number - $active_count;
+		$allow_counter     = $vq_sessions_limit_number - $active_count;
+		$approved_visitors = $wpdb->query( $wpdb->prepare( "update $table set status=1 ORDER BY id ASC LIMIT $allow_counter" ) );
 
 		/**
 		 * Update the stats
 		 */
 		$wpdb->update( $wpdb->prefix . 'vq_status',
 			array(
-				'pending' => $pending_count - $allow_counter,
-				'active'  => $active_count + $allow_counter,
+				'pending' => $pending_count - $approved_visitors,
+				'active'  => $active_count + $approved_visitors,
 			),
 			array( 'id' => 1 )
 		);
 
-		$wpdb->query( $wpdb->prepare( "update $table set status=1 ORDER BY id ASC LIMIT $allow_counter" ) );
 		exit( 0 );
 	}
 }

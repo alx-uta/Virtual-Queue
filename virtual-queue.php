@@ -94,7 +94,7 @@ function vq_shortcode() {
 	if ( $current_cookie ):
 		$position = $wpdb->get_row( "SELECT estimated_time FROM $table where session_id='$current_cookie'" );
 		if ( $position ):
-			return $position->estimated_time;
+			return $position->estimated_time - 1;
 		else:
 			return $undefined;
 		endif;

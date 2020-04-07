@@ -14,7 +14,7 @@
  *
  * @wordpress-plugin
  * Plugin Name:       Virtual Queue
- * Plugin URI:        https://warpknot.com/
+ * Plugin URI:        https://github.com/alx-uta/Virtual-Queue
  * Description:       Keep a virtual queue in case you have more traffic than you should.
  * Version:           1.0.0
  * Author:            Alex Uta

@@ -8,6 +8,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 By using this plugin you'll be able to allow only a specific number of visitors to navigate through your website.
 The extra influx of visitors will be kept in a virtual queue until a new space will be available.
 
+You could always use the following shortcode [virtual-queue-position], in order to display the current user position into the queue.
 
 # Installation
 

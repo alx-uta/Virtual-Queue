@@ -354,6 +354,7 @@ class Virtual_Queue_Public {
 	 */
 	private static function maintenance() {
 		global $wpdb;
+
 		/**
 		 * Remove all the inactive visitors from the queue
 		 */
@@ -362,33 +363,24 @@ class Virtual_Queue_Public {
 		$time                     = time() - ( $vq_inactive_minutes * 60 );
 		$table                    = $wpdb->prefix . 'vq_sessions';
 
-		$delete_pending = $wpdb->query( "DELETE FROM $table WHERE updated_date < $time and status=0" );
-		$delete_active  = $wpdb->query( "DELETE FROM $table WHERE updated_date < $time and status=1" );
-
 		/**
-		 * Get the current status
+		 * Delete Pending & Active Sessions
 		 */
-		$vq_status = self::vq_status( $wpdb, $wpdb->prefix . 'vq_status' );
-
-		/**
-		 * Update the Active and Pending counters
-		 */
-		$pending_count = $vq_status->pending - $delete_pending;
-		$active_count  = $vq_status->active - $delete_active;
+		$wpdb->query( "DELETE FROM $table WHERE updated_date < $time" );
 
 		/**
 		 * Let's allow someone else to navigate
 		 */
-		$allow_counter     = $vq_sessions_limit_number - $active_count;
-		$approved_visitors = $wpdb->query( "update $table set status=1 ORDER BY id ASC LIMIT $allow_counter" );
+		$allow_counter = $vq_sessions_limit_number - self::activeCounter();
+		$wpdb->query( "update $table set status=1 ORDER BY id ASC LIMIT $allow_counter" );
 
 		/**
-		 * Update the stats
+		 * Update the statistics
 		 */
 		$wpdb->update( $wpdb->prefix . 'vq_status',
 			array(
-				'pending' => ( $pending_count - $approved_visitors ) < 0 ? 0 : $pending_count - $approved_visitors,
-				'active'  => ( $active_count + $approved_visitors ) < 0 ? 0 : $active_count + $approved_visitors,
+				'pending' => self::pendingCounter(),
+				'active'  => self::activeCounter()
 			),
 			array( 'id' => 1 )
 		);
@@ -413,5 +405,40 @@ class Virtual_Queue_Public {
 		$wpdb->query( "SET @virtual_queue_position := 0;" );
 		$wpdb->query( "UPDATE $table SET estimated_time = ( SELECT @virtual_queue_position := @virtual_queue_position + 1 ) where status=0 ORDER BY id ASC;" );
 
+	}
+
+	/**
+	 * Active Counter
+	 *
+	 * @return mixed
+	 */
+	private static function activeCounter() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'vq_sessions';
+
+		/**
+		 * Count the active sessions
+		 */
+		$sessions = $wpdb->get_row( "SELECT count(id) as counter FROM $table where status='1'" );
+
+		return $sessions->counter;
+	}
+
+	/**
+	 * Pending Counter
+	 *
+	 * @return mixed
+	 */
+	private static function pendingCounter() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'vq_sessions';
+
+		/**
+		 * Count the pending sessions
+		 * $pending_sessions->counter
+		 */
+		$sessions = $wpdb->get_row( "SELECT count(id) as counter FROM $table where status='0'" );
+
+		return $sessions->counter;
 	}
 }

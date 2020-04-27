@@ -250,11 +250,8 @@ class Virtual_Queue_Public {
 		/**
 		 * Update the status
 		 */
-		if ( $status ):
-			self::increment_active();
-		else:
-			self::increment_pending();
-		endif;
+
+		self::update_statistics();
 
 		return $lastId;
 	}
@@ -290,20 +287,9 @@ class Virtual_Queue_Public {
 	 * @param $session_id
 	 */
 	private static function set_active_status( $wpdb, $table_name, $session_id ) {
-		/**
-		 * Get the current status
-		 */
-		$vq_status = self::vq_status( $wpdb, $wpdb->prefix . 'vq_status' );
-
-		/**
-		 * Update the status
-		 */
-		$wpdb->update( $wpdb->prefix . 'vq_status',
-			array( 'active' => $vq_status->active + 1, 'pending' => $vq_status->pending - 1 ),
-			array( 'id' => 1 )
-		);
-
 		$wpdb->update( $table_name, array( 'status' => 1 ), array( 'session_id' => $session_id ) );
+
+		self::update_statistics();
 	}
 
 	/**
@@ -315,39 +301,6 @@ class Virtual_Queue_Public {
 		$wpdb->update( $table_name, array( 'updated_date' => time() ), array( 'session_id' => $session_id ) );
 	}
 
-	/**
-	 * Increment the active visitors
-	 */
-	private static function increment_active() {
-		global $wpdb;
-
-		/**
-		 * Get the current status
-		 */
-		$vq_status = self::vq_status( $wpdb, $wpdb->prefix . 'vq_status' );
-
-		$wpdb->update( $wpdb->prefix . 'vq_status',
-			array( 'active' => $vq_status->active + 1 ),
-			array( 'id' => 1 )
-		);
-	}
-
-	/**
-	 * Increment the pending visitors
-	 */
-	private static function increment_pending() {
-		global $wpdb;
-
-		/**
-		 * Get the current status
-		 */
-		$vq_status = self::vq_status( $wpdb, $wpdb->prefix . 'vq_status' );
-
-		$wpdb->update( $wpdb->prefix . 'vq_status',
-			array( 'pending' => $vq_status->pending + 1 ),
-			array( 'id' => 1 )
-		);
-	}
 
 	/**
 	 * Maintenance
@@ -377,13 +330,7 @@ class Virtual_Queue_Public {
 		/**
 		 * Update the statistics
 		 */
-		$wpdb->update( $wpdb->prefix . 'vq_status',
-			array(
-				'pending' => self::pendingCounter(),
-				'active'  => self::activeCounter()
-			),
-			array( 'id' => 1 )
-		);
+		self::update_statistics();
 
 		/**
 		 * Update the queue position
@@ -405,6 +352,21 @@ class Virtual_Queue_Public {
 		$wpdb->query( "SET @virtual_queue_position := 0;" );
 		$wpdb->query( "UPDATE $table SET estimated_time = ( SELECT @virtual_queue_position := @virtual_queue_position + 1 ) where status=0 ORDER BY id ASC;" );
 
+	}
+
+	/**
+	 * Update Statistics
+	 */
+	private static function update_statistics() {
+		global $wpdb;
+
+		$wpdb->update( $wpdb->prefix . 'vq_status',
+			array(
+				'pending' => self::pendingCounter(),
+				'active'  => self::activeCounter()
+			),
+			array( 'id' => 1 )
+		);
 	}
 
 	/**

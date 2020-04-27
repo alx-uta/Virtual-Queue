@@ -19,6 +19,7 @@
  * Version:           1.0.0
  * Author:            Alex Uta
  * Author URI:        https://warpknot.com/
+ * Donate link:       https://www.paypal.me/wknt
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       virtual-queue
@@ -94,14 +95,28 @@ function vq_shortcode() {
 	if ( $current_cookie ):
 		$position = $wpdb->get_row( "SELECT estimated_time FROM $table where session_id='$current_cookie'" );
 		if ( $position ):
-			return $position->estimated_time - 1;
+			return $position->estimated_time;
 		else:
 			return $undefined;
 		endif;
 	else:
 		return $undefined;
 	endif;
-
 }
 
 add_shortcode( 'virtual-queue-position', 'vq_shortcode' );
+
+/**
+ * Total
+ *
+ * @return string|null
+ */
+function vq_shortcode_total() {
+	global $wpdb;
+	$table    = $wpdb->prefix . 'vq_sessions';
+	$sessions = $wpdb->get_row( "SELECT count(id) as counter FROM $table where status='0'" );
+
+	return $sessions->counter;
+}
+
+add_shortcode( 'virtual-queue-total', 'vq_shortcode_total' );

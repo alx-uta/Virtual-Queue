@@ -325,7 +325,7 @@ class Virtual_Queue_Public {
 		 * Let's allow someone else to navigate
 		 */
 		$allow_counter = $vq_sessions_limit_number - self::activeCounter();
-		$wpdb->query( "update $table set status=1 ORDER BY id ASC LIMIT $allow_counter" );
+		$wpdb->query( "update $table set status=1 where status=0 ORDER BY id ASC LIMIT $allow_counter" );
 
 		/**
 		 * Update the statistics

@@ -130,7 +130,7 @@ class Virtual_Queue_Public {
 		):
 
 			$table_name        = $wpdb->prefix . 'vq_sessions';
-			$session_create_id = uniqid() . '-' . session_create_id();
+			$session_create_id = uniqid() . '-' . self::session_id();
 
 			$current_cookie   = isset( $_COOKIE['vq_session_id'] ) ? $_COOKIE['vq_session_id'] : $session_create_id;
 			$vq_status        = self::vq_status( $wpdb, $wpdb->prefix . 'vq_status' );
@@ -402,5 +402,58 @@ class Virtual_Queue_Public {
 		$sessions = $wpdb->get_row( "SELECT count(id) as counter FROM $table where status='0'" );
 
 		return $sessions->counter;
+	}
+
+	/**
+	 * Generate an unique session id
+	 * @return string
+	 */
+	private static function session_id() {
+		if ( function_exists( 'session_create_id' ) ):
+			return session_create_id();
+		else:
+			return md5( uniqid() . time() . self::get_client_ip() );
+		endif;
+	}
+
+
+	/**
+	 * Get the IP
+	 *
+	 * @return string
+	 */
+	private static function get_client_ip() {
+		$header_checks = array(
+			'HTTP_CLIENT_IP',
+			'HTTP_PRAGMA',
+			'HTTP_XONNECTION',
+			'HTTP_CACHE_INFO',
+			'HTTP_XPROXY',
+			'HTTP_PROXY',
+			'HTTP_PROXY_CONNECTION',
+			'HTTP_VIA',
+			'HTTP_X_COMING_FROM',
+			'HTTP_COMING_FROM',
+			'HTTP_X_FORWARDED_FOR',
+			'HTTP_X_FORWARDED',
+			'HTTP_X_CLUSTER_CLIENT_IP',
+			'HTTP_FORWARDED_FOR',
+			'HTTP_FORWARDED',
+			'ZHTTP_CACHE_CONTROL',
+			'REMOTE_ADDR'
+		);
+
+		foreach ( $header_checks as $key ) {
+			if ( array_key_exists( $key, $_SERVER ) === true ) {
+				foreach ( explode( ',', $_SERVER[ $key ] ) as $ip ) {
+					$ip = trim( $ip );
+
+					//filter the ip with filter functions
+					if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) !== false ) {
+						return $ip;
+					}
+				}
+			}
+		}
 	}
 }

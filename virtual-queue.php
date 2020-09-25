@@ -90,7 +90,7 @@ function vq_shortcode() {
 	global $wpdb;
 	$table          = $wpdb->prefix . 'vq_sessions';
 	$current_cookie = isset( $_COOKIE['vq_session_id'] ) ? $_COOKIE['vq_session_id'] : false;
-	$undefined      = '#pending';
+	$undefined      = '0';
 
 	if ( $current_cookie ):
 		$position = $wpdb->get_row( "SELECT estimated_time FROM $table where session_id='$current_cookie'" );

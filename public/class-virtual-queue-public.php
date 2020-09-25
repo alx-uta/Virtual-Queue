@@ -121,13 +121,25 @@ class Virtual_Queue_Public {
 		$vq_sessions_limit_number = get_option( 'vq_sessions_limit_number' );
 		$vq_landing_page_url      = get_option( 'vq_landing_page_url' );
 		$vq_cookie_expire_hours   = get_option( 'vq_cookie_expire_hours' );
+		$vq_redirect_to           = get_option( 'vq_redirect_to' );
+		$vq_restrict_page         = get_option( 'vq_restrict_page' );
 
 		if ( ! is_admin()
-		     && ! current_user_can( 'administrator' )
-		     && strpos( $request_url, 'wp-admin' ) == false
-		     && strpos( $request_url, 'wp-login' ) == false
-		     && strpos( $request_url, 'virtual-queue/maintenance' ) == false
+		     && ! current_user_can( 'administrator' ) // if not administrator
+		     && strpos( $request_url, 'wp-admin' ) == false // if not wp-admin
+		     && strpos( $request_url, 'wp-login' ) == false // if not wp-login
+		     && strpos( $request_url, 'virtual-queue/maintenance' ) == false // if not the maintenance page
 		):
+
+			/**
+			 * Make sure that we are protecting the right page
+			 */
+
+			if ( ! empty( $vq_restrict_page ) && ($request_url !== $vq_restrict_page) ):
+				if ( $request_url !== $vq_landing_page_url ):
+					return;
+                endif;
+			endif;
 
 			$table_name        = $wpdb->prefix . 'vq_sessions';
 			$session_create_id = uniqid() . '-' . self::session_id();
@@ -198,9 +210,8 @@ class Virtual_Queue_Public {
 
 			if ( ! $status ):
 				/**
-				 * See if someone left the queue
-				 */
-				/**
+				 * See if someone left the queue &
+				 *
 				 * Redirect to the landing page
 				 */
 				if ( $request_url !== $vq_landing_page_url ):
@@ -209,7 +220,11 @@ class Virtual_Queue_Public {
 				endif;
 			else:
 				if ( $request_url === $vq_landing_page_url ):
-					wp_redirect( "/" );
+					if ( ! empty( $vq_redirect_to ) ):
+						wp_redirect( $vq_redirect_to );
+					else:
+						wp_redirect( "/" );
+					endif;
 					exit();
 				endif;
 			endif;
@@ -307,7 +322,6 @@ class Virtual_Queue_Public {
 	 */
 	private static function maintenance() {
 		global $wpdb;
-
 		/**
 		 * Remove all the inactive visitors from the queue
 		 */

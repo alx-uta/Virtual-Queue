@@ -34,10 +34,12 @@ class Virtual_Queue_Deactivator {
 		$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'vq_sessions' );
 		$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'vq_status' );
 		delete_option( "vq_sessions_limit_number" );
-		delete_option( "vq_landing_page_url" );
-		delete_option( "vq_sessions_limit_number" );
+		delete_option( "vq_redirect_to" );
+		delete_option( "vq_restrict_page" );
 		delete_option( "vq_cookie_expire_hours" );
 		delete_option( "vq_refresh_seconds" );
+		delete_option( "vq_inactive_minutes" );
+		delete_option( "vq_landing_page_url" );
 	}
 
 }

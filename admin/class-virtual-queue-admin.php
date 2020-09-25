@@ -79,15 +79,12 @@ class Virtual_Queue_Admin {
 	}
 
 
-	function theme_options_page() {
-		?>
+	function theme_options_page() { ?>
         <div class="wrap">
             <div id="icon-options-general" class="icon32"></div>
             <h1>Virtual Queue - Options</h1>
 
-			<?php
-			$active_tab = isset( $_GET["tab"] ) ? ( $_GET["tab"] == 'statistics' ? 'statistics' : 'general-settings' ) : 'general-settings';
-			?>
+			<?php $active_tab = isset( $_GET["tab"] ) ? ( $_GET["tab"] == 'statistics' ? 'statistics' : $_GET["tab"] ) : 'general-settings'; ?>
 
             <!-- wordpress provides the styling for tabs. -->
             <h2 class="nav-tab-wrapper">
@@ -95,7 +92,7 @@ class Virtual_Queue_Admin {
                 <a href="?page=virtual-queue-options&tab=general-settings"
                    class="nav-tab <?php if ( $active_tab == 'general-settings' ) {
 					   echo 'nav-tab-active';
-				   } ?> "><?php _e( 'Header Options', 'virtual-queue' ); ?></a>
+				   } ?> "><?php _e( 'General Settings', 'virtual-queue' ); ?></a>
                 <a href="?page=virtual-queue-options&tab=statistics"
                    class="nav-tab <?php if ( $active_tab == 'statistics' ) {
 					   echo 'nav-tab-active';
@@ -104,7 +101,6 @@ class Virtual_Queue_Admin {
 
             <form method="post" action="options.php">
 				<?php
-
 				settings_fields( "header_section" );
 
 				do_settings_sections( "virtual-queue-options" );
@@ -130,7 +126,7 @@ class Virtual_Queue_Admin {
 			/**
 			 * Sessions Limit
 			 */
-			add_settings_field( "vq_sessions_limit_number", "Sessions", "Virtual_Queue_Admin::active_sessions", "virtual-queue-options", "header_section" );
+			add_settings_field( "vq_active_sessions", "Sessions", "Virtual_Queue_Admin::active_sessions", "virtual-queue-options", "header_section" );
 			register_setting( "header_section", "vq_active_sessions" );
 
 		else:
@@ -164,6 +160,18 @@ class Virtual_Queue_Admin {
 			add_settings_field( "vq_landing_page_url", "Landing Page Url", "Virtual_Queue_Admin::display_landing_page_url_form_element", "virtual-queue-options", "header_section" );
 			register_setting( "header_section", "vq_landing_page_url" );
 
+			/**
+			 * Redirect To
+			 */
+			add_settings_field( "vq_redirect_to", "Redirect to a specific page", "Virtual_Queue_Admin::display_redirect_to_form_element", "virtual-queue-options", "header_section" );
+			register_setting( "header_section", "vq_redirect_to" );
+
+			/**
+			 * Restrict Page
+			 */
+			add_settings_field( "vq_restrict_page", "Restrict a specific page", "Virtual_Queue_Admin::display_restrict_page_form_element", "virtual-queue-options", "header_section" );
+			register_setting( "header_section", "vq_restrict_page" );
+
 			?>
 
 		<?php
@@ -179,6 +187,38 @@ class Virtual_Queue_Admin {
 		?>
         <input type="text" name="vq_sessions_limit_number" id="vq_sessions_limit_number" class="regular-text code"
                value="<?php echo get_option( 'vq_sessions_limit_number' ); ?>"/>
+		<?php
+	}
+
+	function display_redirect_to_form_element() {
+		$pages           = get_pages();
+		$currentRedirect = get_option( 'vq_redirect_to' );
+		$pagesList       = '<option value="">Select Page</option>';
+
+		foreach ( $pages as $page ):
+			$pagLink   = get_page_link( $page );
+			$pagesList .= '<option value="' . $pagLink . '"' . ( $pagLink == $currentRedirect ? ' selected' : '' ) . '>' . $page->post_title . '</option>';
+		endforeach; ?>
+
+        <select name="vq_redirect_to" id="vq_redirect_to" class="regular-text code">
+			<? echo $pagesList ?>
+        </select>
+		<?php
+	}
+
+	function display_restrict_page_form_element() {
+		$pages           = get_pages();
+		$currentRedirect = get_option( 'vq_restrict_page' );
+		$pagesList       = '<option value="">Select Page</option>';
+
+		foreach ( $pages as $page ):
+			$pagLink   = str_replace( home_url(), "", get_page_link( $page ) );
+			$pagesList .= '<option value="' . $pagLink . '"' . ( $pagLink == $currentRedirect ? ' selected' : '' ) . '>' . $page->post_title . '</option>';
+		endforeach; ?>
+
+        <select name="vq_restrict_page" id="vq_restrict_page" class="regular-text code">
+			<? echo $pagesList ?>
+        </select>
 		<?php
 	}
 
@@ -222,16 +262,13 @@ class Virtual_Queue_Admin {
 
 	}
 
-
 	/**
 	 * Register the stylesheets for the admin area.
 	 *
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
-
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/virtual-queue-admin.css', array(), $this->version, 'all' );
-
 	}
 
 	/**
@@ -240,9 +277,7 @@ class Virtual_Queue_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/virtual-queue-admin.js', array( 'jquery' ), $this->version, false );
-
 	}
 
 }

@@ -18,7 +18,7 @@ You could always use the following shortcode [virtual-queue-position], in order 
 4. Set a Cron Job that will access the link https://domain.com/virtual-queue/maintenance/ where domain.com is your own domain name.
 
 
-![Alt text](screenshots/admin-settings.png?raw=true "Virtual Queue Settings")
+![Alt text](screenshots/admin-settings_v2.png?raw=true "Virtual Queue Settings")
 
 
 #
